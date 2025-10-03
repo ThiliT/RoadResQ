@@ -6,7 +6,7 @@ class ConnectivityService {
     return result == ConnectivityResult.mobile || result == ConnectivityResult.wifi || result == ConnectivityResult.ethernet;
   }
 
-  Stream<ConnectivityResult> get connectivityStream => Connectivity().onConnectivityChanged;
+  Stream<List<ConnectivityResult>> get connectivityStream => Connectivity().onConnectivityChanged;
 }
 
 

@@ -63,7 +63,7 @@ ThemeData buildTheme({Brightness brightness = Brightness.light}) {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       ),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 4,
       color: isDark ? const Color(0xFF151923) : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
