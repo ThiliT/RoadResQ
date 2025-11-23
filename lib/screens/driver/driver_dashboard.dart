@@ -3,6 +3,8 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import '../../services/connectivity_service.dart';
 import '../../services/location_service.dart';
 import '../../services/communication_service.dart';
+import '../../services/storage_service.dart';
+import '../../utils/constants.dart';
 import '../../widgets/status_card.dart';
 import 'map_view.dart';
 import 'mechanic_list.dart';
@@ -22,7 +24,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   int _tabIndex = 0; // 0=Home,1=Map,2=Profile placeholder
   String _locationText = 'Detecting location...';
   bool _smsModeActive = false;
-  List<Map<String, String>> _smsMechanics = [];
 
   @override
   void initState() {
@@ -32,8 +33,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
   Future<void> _init() async {
     _online = await _connectivity.isOnline();
-    _connectivity.connectivityStream.listen((event) {
-      final isOnline = event == ConnectivityResult.mobile || event == ConnectivityResult.wifi || event == ConnectivityResult.ethernet;
+    _connectivity.connectivityStream.listen((results) {
+      // The stream emits List<ConnectivityResult>, not a single value
+      final isOnline = results.contains(ConnectivityResult.mobile) ||
+          results.contains(ConnectivityResult.wifi) ||
+          results.contains(ConnectivityResult.ethernet);
       if (mounted) setState(() => _online = isOnline);
     });
     try {
@@ -53,34 +57,45 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       });
     } else {
       setState(() => _smsModeActive = true);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Offline Mode: Sending SMS...')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Offline Mode: Sending request to backend...')));
       try {
+        // Get user's phone number from storage
+        final storageService = StorageService();
+        final driver = await storageService.getDriver();
+        if (driver == null) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User information not found. Please register first.')));
+          return;
+        }
+
+        // Get current location
         final pos = await _locationService.getCurrentLocation();
-        final response = await _comm.simulateSMSSend(pos);
-        final list = _parseSmsResponse(response);
+        
+        // Format SMS message to send to backend
+        // Format: "HELP <user_phone> <lat>,<lng>"
+        // Backend will receive this, find nearby mechanics, and send SMS back to user
+        final requestMessage = 'HELP ${driver.phone} ${pos.latitude.toStringAsFixed(4)},${pos.longitude.toStringAsFixed(4)}';
+        
+        // Send SMS to backend number - backend will process and send mechanics list back to user
+        await _comm.sendSMS(AppStrings.backendSmsNumber, requestMessage);
+        
         if (!mounted) return;
-        setState(() => _smsMechanics = list);
+        
+        // Show message that backend will send SMS with mechanics list
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Request sent to backend. You will receive SMS with nearby mechanics list shortly.'),
+            duration: Duration(seconds: 4),
+          )
+        );
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('SMS simulation failed: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to send request: $e')));
       }
     }
   }
 
-  List<Map<String, String>> _parseSmsResponse(String text) {
-    // Format: "Mechanics near you: 1.Sunil-0771234567-3km, 2.Kamal-0772345678-5km"
-    final parts = text.split(':');
-    if (parts.length < 2) return [];
-    final items = parts[1].split(',');
-    return items.map((s) {
-      final t = s.trim().replaceAll(RegExp(r'^[0-9]+\.'), '');
-      final seg = t.split('-');
-      if (seg.length >= 3) {
-        return {'name': seg[0], 'phone': seg[1], 'distance': seg[2]};
-      }
-      return {'name': t, 'phone': '', 'distance': ''};
-    }).toList();
-  }
+
 
   Widget _buildHome() {
     return Column(
@@ -99,7 +114,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           width: double.infinity,
           color: Colors.orange.withOpacity(0.15),
           padding: const EdgeInsets.all(12),
-          child: const Text('Offline Mode: SMS will be used to find nearby mechanics'),
+          child: const Text('Offline Mode: Request sent to backend. You will receive SMS with nearby mechanics list.'),
         ),
         const SizedBox(height: 8),
         Padding(
@@ -111,27 +126,29 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        if (_smsModeActive)
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12),
-            child: Text('Mock SMS format: "HELP <lat>,<lng>"'),
-          ),
-        const SizedBox(height: 8),
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: _smsMechanics.length,
-            itemBuilder: (_, i) {
-              final it = _smsMechanics[i];
-              return Card(
-                child: ListTile(
-                  leading: const Icon(Icons.handyman_outlined),
-                  title: Text(it['name'] ?? ''),
-                  subtitle: Text((it['distance'] ?? '').isEmpty ? 'SMS Mode Active' : it['distance']!),
-                  trailing: Wrap(spacing: 8, children: const [Icon(Icons.call), Icon(Icons.sms)]),
-                ),
-              );
-            },
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.sms_outlined, size: 64, color: Colors.orange),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Waiting for backend response...',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Backend will send SMS to your registered phone number with the list of nearby mechanics.',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
           ),
         )
       ],
