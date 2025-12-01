@@ -4,6 +4,7 @@ import '../../utils/dummy_data.dart';
 import '../../models/mechanic.dart';
 import '../../services/location_service.dart';
 import '../../services/communication_service.dart';
+import '../../services/mechanics_service.dart';
 
 class MechanicListView extends StatefulWidget {
   const MechanicListView({super.key});
@@ -14,9 +15,10 @@ class MechanicListView extends StatefulWidget {
 
 class _MechanicListViewState extends State<MechanicListView> {
   final LocationService _locationService = LocationService();
+  final MechanicsService _mechanicsService = MechanicsService();
   final CommunicationService _comm = CommunicationService();
   Position? _position;
-  List<Mechanic> _items = dummyMechanics;
+  List<Mechanic> _items = [];
   bool _loading = true;
   String _search = '';
   double _radiusKm = 20;
@@ -29,20 +31,40 @@ class _MechanicListViewState extends State<MechanicListView> {
 
   Future<void> _init() async {
     try {
+      // Get location
       final pos = await _locationService.getCurrentLocation();
-      if (!mounted) return;
-      setState(() {
-        _position = pos;
-        _loading = false;
-      });
+      
+      // Fetch mechanics from backend
+      try {
+        final mechanics = await _mechanicsService.fetchMechanics();
+        if (!mounted) return;
+        setState(() {
+          _position = pos;
+          _items = mechanics;
+          _loading = false;
+        });
+      } catch (e) {
+        // Fallback to dummy data if backend fetch fails
+        if (!mounted) return;
+        setState(() {
+          _position = pos;
+          _items = dummyMechanics;
+          _loading = false;
+        });
+      }
     } catch (_) {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        setState(() {
+          _items = dummyMechanics; // Fallback to dummy data
+          _loading = false;
+        });
+      }
     }
   }
 
   List<Mechanic> _filtered() {
     final q = _search.trim().toLowerCase();
-    var list = dummyMechanics.where((m) => q.isEmpty || m.area.toLowerCase().contains(q) || m.name.toLowerCase().contains(q)).toList();
+    var list = _items.where((m) => q.isEmpty || m.area.toLowerCase().contains(q) || m.name.toLowerCase().contains(q)).toList();
     if (_position != null) {
       list = list
           .where((m) => _locationService.calculateDistance(_position!.latitude, _position!.longitude, m.latitude, m.longitude) <= _radiusKm)
@@ -61,7 +83,10 @@ class _MechanicListViewState extends State<MechanicListView> {
     if (_loading) return const Center(child: CircularProgressIndicator());
     final items = _filtered();
     return RefreshIndicator(
-      onRefresh: () async => setState(() {}),
+      onRefresh: () async {
+        await _init();
+        setState(() {});
+      },
       child: ListView(
         padding: const EdgeInsets.all(12),
         children: [

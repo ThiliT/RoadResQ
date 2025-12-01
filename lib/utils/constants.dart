@@ -20,6 +20,8 @@ class AppStrings {
   static const String appName = 'RoadResQ';
   // Backend SMS number for offline emergency requests
   static const String backendSmsNumber = '0715562360'; // Replace with your actual backend SMS shortcode
+  static const backendUrl = 'http://localhost:3000';
+
 }
 
 class AppGradients {

@@ -1,0 +1,17 @@
+{
+  "name": "road-resq-backend",
+  "version": "1.0.0",
+  "description": "Minimal SMS backend for RoadResQ offline help flow",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "adbkit": "^2.11.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mysql2": "^3.11.3"
+  }
+}
