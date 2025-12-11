@@ -16,11 +16,127 @@ class DriverProfileScreen extends StatefulWidget {
 class _DriverProfileScreenState extends State<DriverProfileScreen> {
   final StorageService _storageService = StorageService();
   late Future<DriverUser?> _driverFuture;
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
     _driverFuture = _storageService.getDriver();
+  }
+
+  Future<void> _showEditProfile(BuildContext context, DriverUser? driver) async {
+    final formKey = GlobalKey<FormState>();
+    final phoneController = TextEditingController(text: driver?.phone ?? '');
+    final emailController = TextEditingController(text: driver?.email ?? '');
+    final vehicleController = TextEditingController(text: driver?.vehicleType ?? '');
+    final plateController = TextEditingController(text: driver?.plateNumber ?? '');
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+          ),
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Edit profile', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                    IconButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      icon: const Icon(Icons.close_rounded),
+                    )
+                  ],
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: phoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(labelText: 'Phone number'),
+                  validator: (value) => (value == null || value.trim().isEmpty) ? 'Phone is required' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(labelText: 'Email'),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) return null;
+                    final email = value.trim();
+                    final isValid = RegExp(r'^[\w\.-]+@[\w\.-]+\.\w+$').hasMatch(email);
+                    return isValid ? null : 'Enter a valid email';
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: vehicleController,
+                  decoration: const InputDecoration(labelText: 'Vehicle'),
+                  validator: (value) => (value == null || value.trim().isEmpty) ? 'Vehicle is required' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: plateController,
+                  decoration: const InputDecoration(labelText: 'License plate'),
+                  validator: (value) => (value == null || value.trim().isEmpty) ? 'License plate is required' : null,
+                ),
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _isSaving
+                        ? null
+                        : () async {
+                            if (!formKey.currentState!.validate()) return;
+                            setState(() => _isSaving = true);
+                            final updated = (driver ?? const DriverUser(name: 'Driver', phone: '', vehicleType: ''))
+                                .copyWith(
+                                  phone: phoneController.text.trim(),
+                                  email: emailController.text.trim(),
+                                  vehicleType: vehicleController.text.trim(),
+                                  plateNumber: plateController.text.trim(),
+                                );
+                            await _storageService.saveDriver(updated);
+                            if (!mounted) return;
+                            setState(() {
+                              _driverFuture = _storageService.getDriver();
+                              _isSaving = false;
+                            });
+                            Navigator.of(ctx).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated')));
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: _isSaving
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Text('Save changes'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _logout(BuildContext context) async {
@@ -41,6 +157,8 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
         final name = driver?.name.isNotEmpty == true ? driver!.name : 'Driver';
         final phone = driver?.phone ?? 'Add phone';
         final vehicle = driver?.vehicleType ?? 'Add vehicle';
+        final email = driver?.email ?? 'Add email';
+        final plate = driver?.plateNumber ?? 'Add plate';
         const membership = 'Premium';
 
         return SafeArea(
@@ -69,11 +187,11 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                       children: [
                         _InfoRow(icon: Icons.phone_rounded, label: 'Phone', value: phone),
                         const Divider(height: 20),
-                        _InfoRow(icon: Icons.email_outlined, label: 'Email', value: 'Add email'),
+                        _InfoRow(icon: Icons.email_outlined, label: 'Email', value: email),
                         const Divider(height: 20),
                         _InfoRow(icon: Icons.directions_car_filled_rounded, label: 'Vehicle', value: vehicle),
                         const Divider(height: 20),
-                        _InfoRow(icon: Icons.confirmation_number_outlined, label: 'License plate', value: 'Add plate'),
+                        _InfoRow(icon: Icons.confirmation_number_outlined, label: 'License plate', value: plate),
                       ],
                     ),
                   ),
@@ -127,26 +245,24 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                         _ActionButton(
                           icon: Icons.edit_rounded,
                           label: 'Edit profile',
-                          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Profile editing coming soon')),
-                          ),
+                          onPressed: () => _showEditProfile(context, driver),
                         ),
-                        const SizedBox(height: 10),
-                        _ActionButton(
-                          icon: Icons.lock_reset_rounded,
-                          label: 'Change password',
-                          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Password change coming soon')),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        _ActionButton(
-                          icon: Icons.credit_card_rounded,
-                          label: 'Payment methods',
-                          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Payment methods coming soon')),
-                          ),
-                        ),
+                        // const SizedBox(height: 10),
+                        // _ActionButton(
+                        //   icon: Icons.lock_reset_rounded,
+                        //   label: 'Change password',
+                        //   onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                        //     const SnackBar(content: Text('Password change coming soon')),
+                        //   ),
+                        // ),
+                        // const SizedBox(height: 10),
+                        // _ActionButton(
+                        //   icon: Icons.credit_card_rounded,
+                        //   label: 'Payment methods',
+                        //   onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                        //     const SnackBar(content: Text('Payment methods coming soon')),
+                        //   ),
+                        // ),
                         const SizedBox(height: 10),
                         _ActionButton(
                           icon: Icons.logout_rounded,
@@ -157,39 +273,39 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  _SectionCard(
-                    title: 'Quick actions',
-                    icon: Icons.flash_on_rounded,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: widget.onRequestHelp,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          ),
-                          icon: const Icon(Icons.emergency_outlined),
-                          label: const Text('Request assistance now'),
-                        ),
-                        const SizedBox(height: 10),
-                        OutlinedButton.icon(
-                          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Share live location coming soon')),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                            side: const BorderSide(color: Colors.blueGrey),
-                          ),
-                          icon: const Icon(Icons.share_location_rounded, color: Colors.blueGrey),
-                          label: const Text('Share live location', style: TextStyle(color: Colors.blueGrey)),
-                        ),
-                      ],
-                    ),
-                  ),
+                  // const SizedBox(height: 16),
+                  // _SectionCard(
+                  //   title: 'Quick actions',
+                  //   icon: Icons.flash_on_rounded,
+                  //   child: Column(
+                  //     crossAxisAlignment: CrossAxisAlignment.stretch,
+                  //     children: [
+                  //       ElevatedButton.icon(
+                  //         onPressed: widget.onRequestHelp,
+                  //         style: ElevatedButton.styleFrom(
+                  //           backgroundColor: AppColors.primary,
+                  //           padding: const EdgeInsets.symmetric(vertical: 14),
+                  //           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  //         ),
+                  //         icon: const Icon(Icons.emergency_outlined),
+                  //         label: const Text('Request assistance now'),
+                  //       ),
+                  //       const SizedBox(height: 10),
+                  //       OutlinedButton.icon(
+                  //         onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                  //           const SnackBar(content: Text('Share live location coming soon')),
+                  //         ),
+                  //         style: OutlinedButton.styleFrom(
+                  //           padding: const EdgeInsets.symmetric(vertical: 14),
+                  //           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  //           side: const BorderSide(color: Colors.blueGrey),
+                  //         ),
+                  //         icon: const Icon(Icons.share_location_rounded, color: Colors.blueGrey),
+                  //         label: const Text('Share live location', style: TextStyle(color: Colors.blueGrey)),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
                   const SizedBox(height: 16),
                   _SectionCard(
                     title: 'Recent activity',
