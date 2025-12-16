@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/mechanic.dart';
 import '../../services/storage_service.dart';
 import '../../utils/constants.dart';
+import '../welcome_screen.dart';
 
 class MechanicDashboardScreen extends StatefulWidget {
   const MechanicDashboardScreen({super.key});
@@ -210,10 +211,63 @@ class _MechanicDashboardScreenState extends State<MechanicDashboardScreen> {
     );
   }
 
+  Future<void> _confirmAndLogout() async {
+    final shouldLogout = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Confirm Logout'),
+            content: const Text('Are you sure you want to log out?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton.icon(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                icon: const Icon(Icons.logout),
+                label: const Text('Logout'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (!shouldLogout) return;
+
+    try {
+      await _storageService.logout();
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+        (route) => false,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to log out. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mechanic Dashboard')),
+      appBar: AppBar(
+        title: const Text('Mechanic Dashboard'),
+        actions: [
+          TextButton.icon(
+            onPressed: _confirmAndLogout,
+            icon: const Icon(Icons.logout, color: Colors.white),
+            label: const Text(
+              'Logout',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
       body: FutureBuilder<Mechanic?>(
         future: _mechanicFuture,
         builder: (context, snapshot) {
@@ -286,8 +340,12 @@ class _MechanicDashboardScreenState extends State<MechanicDashboardScreen> {
                   icon: const Icon(Icons.my_location),
                   label: const Text('Update Current Location'),
                 ),
-
-          
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  onPressed: _confirmAndLogout,
+                  icon: const Icon(Icons.logout),
+                  label: const Text('Logout'),
+                ),
               ],
             ),
           );

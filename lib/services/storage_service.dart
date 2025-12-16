@@ -83,6 +83,14 @@ class StorageService {
     final jsonList = jsonDecode(jsonStr) as List<dynamic>;
     return jsonList.map((json) => PaymentMethod.fromJson(json as Map<String, dynamic>)).toList();
   }
+
+  /// Clears all persisted user-related data to safely log out the user.
+  /// 
+  /// This is a convenience wrapper around [clear] so that call sites
+  /// can use a more semantic API (`logout()`).
+  Future<void> logout() async {
+    await clear();
+  }
 }
 
 
