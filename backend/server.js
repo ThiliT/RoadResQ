@@ -22,7 +22,7 @@ host: DB_HOST,
 port: DB_PORT,
 database: DB_NAME || 'roadresq',
 user: DB_USER || 'root',
-password: DB_PASSWORD || 'db_password',
+password: DB_PASSWORD || 'ttSc@0701',
 waitForConnections: true,
 connectionLimit: 10,
 });
@@ -153,4 +153,6 @@ app.get('/mechanics', async (req, res) => {
 app.get('/health', (_req,res) => res.json({ ok:true, uptime: process.uptime() }));
 
 // Start server
-app.listen(PORT, () => console.log(`🚀 RoadResQ SMS backend listening on port ${PORT}`));
+app.listen(PORT, "0.0.0.0", () =>
+  console.log(`🚀 RoadResQ backend listening on 0.0.0.0:${PORT}`)
+);

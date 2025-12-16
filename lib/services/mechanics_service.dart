@@ -11,25 +11,14 @@ class MechanicsService {
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final data = jsonDecode(response.body);
+
         if (data['status'] == 'success' && data['mechanics'] != null) {
-          final mechanicsList = (data['mechanics'] as List)
-              .map((m) {
-                // Convert database row to Mechanic model
-                return Mechanic(
-                  id: m['id'].toString(),
-                  name: m['name'] as String,
-                  phone: m['phone'] as String,
-                  latitude: (m['latitude'] as num).toDouble(),
-                  longitude: (m['longitude'] as num).toDouble(),
-                  area: m['area'] as String,
-                  available: (m['available'] as int) == 1 || (m['available'] as bool) == true,
-                  rating: (m['rating'] as num).toDouble(),
-                );
-              })
+          return (data['mechanics'] as List)
+              .map((m) => Mechanic.fromJson(m))
               .toList();
-          return mechanicsList;
         }
+
         return [];
       } else {
         throw Exception('Backend error: ${response.statusCode}');
@@ -39,4 +28,3 @@ class MechanicsService {
     }
   }
 }
-

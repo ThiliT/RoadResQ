@@ -17,12 +17,11 @@ class CommunicationService {
     }
   }
 
-  Future<String> simulateSMSSend(Position location) async {
-    // Simulate sending an SMS and receiving a response
-    await Future.delayed(const Duration(seconds: 2));
-    // Mock response text (as if from a service)
-    return 'Mechanics near you: 1.Sunil-0771234567-3km, 2.Kamal-0772345678-5km';
-  }
+  // Future<String> simulateSMSSend(Position location) async {
+  //   // Simulate sending an SMS and receiving a response
+  //   await Future.delayed(const Duration(seconds: 2));
+  //   // Mock response text (as if from a service)
+  //   return 'Mechanics near you: 1.Sunil-0771234567-3km, 2.Kamal-0772345678-5km';
+  // }
 }
-
 
