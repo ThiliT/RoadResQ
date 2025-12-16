@@ -4,6 +4,7 @@ import '../../utils/dummy_data.dart';
 import '../../models/mechanic.dart';
 import '../../services/location_service.dart';
 import '../../services/communication_service.dart';
+import '../../services/rating_service.dart';
 
 class MechanicListView extends StatefulWidget {
   const MechanicListView({super.key});
@@ -101,6 +102,7 @@ class _MechanicCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ratingService = RatingService();
     final service = LocationService();
     final distance = position == null
         ? null
@@ -116,7 +118,14 @@ class _MechanicCard extends StatelessWidget {
               const Icon(Icons.handyman_rounded, color: Colors.orange),
               const SizedBox(width: 8),
               Expanded(child: Text(mechanic.name, style: const TextStyle(fontWeight: FontWeight.w600))),
-              Text('⭐ ${mechanic.rating.toStringAsFixed(1)}'),
+              FutureBuilder<double>(
+                future: ratingService.getMechanicAverage(mechanic.id),
+                builder: (context, snapshot) {
+                  final avg = snapshot.data;
+                  final display = (avg != null && avg > 0) ? avg : mechanic.rating;
+                  return Text('⭐ ${display.toStringAsFixed(1)}');
+                },
+              ),
             ],
           ),
           const SizedBox(height: 6),

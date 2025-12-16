@@ -8,6 +8,7 @@ import '../../utils/constants.dart';
 import '../../widgets/status_card.dart';
 import 'map_view.dart';
 import 'mechanic_list.dart';
+import 'driver_profile.dart';
 
 class DriverDashboardScreen extends StatefulWidget {
   const DriverDashboardScreen({super.key});
@@ -160,7 +161,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     final pages = [
       _buildHome(),
       const DriverMapView(),
-      const Center(child: Text('Profile (coming soon)')),
+      DriverProfileScreen(onRequestHelp: _emergency),
     ];
     return Scaffold(
       appBar: AppBar(title: const Text('RoadResQ')),

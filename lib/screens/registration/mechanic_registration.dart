@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../services/location_service.dart';
+import '../../services/storage_service.dart';
+import '../../models/mechanic.dart';
 import '../mechanic/mechanic_dashboard.dart';
 
 class MechanicRegistrationScreen extends StatefulWidget {
@@ -40,12 +42,45 @@ class _MechanicRegistrationScreenState extends State<MechanicRegistrationScreen>
     }
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const MechanicDashboardScreen()),
-      (route) => false,
-    );
+    
+    // Require location to be set
+    if (_position == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please detect your current location')),
+      );
+      return;
+    }
+
+    setState(() => _loadingLocation = true);
+    try {
+      final mechanic = Mechanic(
+        id: DateTime.now().millisecondsSinceEpoch.toString(), // Generate temporary ID
+        name: _nameController.text.trim(),
+        phone: _phoneController.text.trim(),
+        latitude: _position!.latitude,
+        longitude: _position!.longitude,
+        area: _serviceArea,
+        available: _available,
+        rating: 0.0, // Default rating for new mechanics
+      );
+      
+      await StorageService().saveMechanic(mechanic);
+      
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const MechanicDashboardScreen()),
+        (route) => false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _loadingLocation = false);
+    }
   }
 
   @override
@@ -112,9 +147,11 @@ class _MechanicRegistrationScreenState extends State<MechanicRegistrationScreen>
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
-                  onPressed: _submit,
-                  icon: const Icon(Icons.check_circle_outline),
-                  label: const Text('Register'),
+                  onPressed: _loadingLocation ? null : _submit,
+                  icon: _loadingLocation
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Icon(Icons.check_circle_outline),
+                  label: Text(_loadingLocation ? 'Registering...' : 'Register'),
                 ),
               ],
             ),
