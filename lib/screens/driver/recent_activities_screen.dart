@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../models/activity.dart';
+import '../../models/rating.dart';
+import '../../models/user.dart';
+import '../../services/rating_service.dart';
+import '../../services/storage_service.dart';
 import '../../utils/constants.dart';
+import '../../widgets/rating_widget.dart';
 
 class RecentActivitiesScreen extends StatefulWidget {
   const RecentActivitiesScreen({super.key});
@@ -12,6 +17,7 @@ class RecentActivitiesScreen extends StatefulWidget {
 class _RecentActivitiesScreenState extends State<RecentActivitiesScreen> {
   late Future<List<Activity>> _activitiesFuture;
   bool _isLoading = false;
+  final RatingService _ratingService = RatingService();
 
   @override
   void initState() {
@@ -114,7 +120,10 @@ class _RecentActivitiesScreenState extends State<RecentActivitiesScreen> {
               separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final activity = activities[index];
-                return _ActivityCard(activity: activity);
+                return _ActivityCard(
+                  activity: activity,
+                  ratingService: _ratingService,
+                );
               },
             ),
           );
@@ -160,23 +169,223 @@ class _RecentActivitiesScreenState extends State<RecentActivitiesScreen> {
   }
 }
 
-class _ActivityCard extends StatelessWidget {
+class _ActivityCard extends StatefulWidget {
   final Activity activity;
+  final RatingService ratingService;
 
-  const _ActivityCard({required this.activity});
+  const _ActivityCard({required this.activity, required this.ratingService});
+
+  @override
+  State<_ActivityCard> createState() => _ActivityCardState();
+}
+
+class _ActivityCardState extends State<_ActivityCard> {
+  bool _hasRated = false;
+  Rating? _existingRating;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRatingState();
+  }
+
+  Future<void> _loadRatingState() async {
+    final hasRated = await widget.ratingService.hasRated(widget.activity.id);
+    Rating? rating;
+    if (hasRated) {
+      rating = await widget.ratingService.getRatingForService(widget.activity.id);
+    }
+    if (!mounted) return;
+    setState(() {
+      _hasRated = hasRated;
+      _existingRating = rating;
+    });
+  }
+
+  Future<void> _showRateDialog(BuildContext context) async {
+    if (widget.activity.status != ActivityStatus.completed) return;
+
+    int selectedRating = _existingRating?.rating ?? 0;
+    final commentController = TextEditingController(text: _existingRating?.comment ?? '');
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+          ),
+          child: StatefulBuilder(
+            builder: (context, setSheetState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Rate Mechanic',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        icon: const Icon(Icons.close_rounded),
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const CircleAvatar(
+                        radius: 24,
+                        child: Icon(Icons.handyman_rounded),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.activity.mechanicName ?? 'Mechanic',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${widget.activity.typeLabel} • ${_formatTimestamp(widget.activity.timestamp)}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'How was the service?',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Center(
+                    child: RatingWidget(
+                      rating: selectedRating,
+                      onChanged: (value) {
+                        setSheetState(() {
+                          selectedRating = value;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: commentController,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: 'Add feedback (optional)',
+                      alignLabelWithHint: true,
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(ctx).pop(),
+                          child: const Text('Skip'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: selectedRating == 0
+                              ? null
+                              : () async {
+                                  // Build rating payload
+                                  final storage = StorageService();
+                                  final driver = await storage.getDriver();
+                                  final driverId = driver?.phone ?? 'unknown_driver';
+                                  final mechanicId = widget.activity.mechanicName ?? 'unknown_mechanic';
+
+                                  final rating = Rating(
+                                    serviceId: widget.activity.id,
+                                    mechanicId: mechanicId,
+                                    driverId: driverId,
+                                    rating: selectedRating,
+                                    comment: commentController.text.trim().isEmpty
+                                        ? null
+                                        : commentController.text.trim(),
+                                    timestamp: DateTime.now(),
+                                  );
+
+                                  try {
+                                    await widget.ratingService.addRating(rating);
+                                    if (!mounted) return;
+                                    setState(() {
+                                      _hasRated = true;
+                                      _existingRating = rating;
+                                    });
+                                    Navigator.of(ctx).pop();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Thank you for rating!'),
+                                        backgroundColor: AppColors.success,
+                                      ),
+                                    );
+                                  } catch (e) {
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Failed to submit rating: $e'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                },
+                          child: const Text('Submit Rating'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final activity = widget.activity;
     return Card(
       child: InkWell(
         onTap: () {
-          // Can be extended to show activity details
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${activity.typeLabel} - ${activity.statusLabel}'),
-              duration: const Duration(seconds: 2),
-            ),
-          );
+          // For completed services, tap opens the rating dialog.
+          if (activity.status == ActivityStatus.completed && !_hasRated) {
+            _showRateDialog(context);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('${activity.typeLabel} - ${activity.statusLabel}'),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
         },
         borderRadius: BorderRadius.circular(16),
         child: Padding(
@@ -244,6 +453,29 @@ class _ActivityCard extends StatelessWidget {
                         fontSize: 12,
                       ),
                     ),
+                    if (activity.status == ActivityStatus.completed)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6.0),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: _hasRated
+                              ? Row(
+                                  children: [
+                                    const Icon(Icons.star_rounded, color: Colors.amber, size: 18),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${_existingRating?.rating ?? '-'} / 5',
+                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                                    ),
+                                  ],
+                                )
+                              : TextButton.icon(
+                                  onPressed: () => _showRateDialog(context),
+                                  icon: const Icon(Icons.star_border_rounded, size: 18),
+                                  label: const Text('Rate mechanic'),
+                                ),
+                        ),
+                      ),
                   ],
                 ),
               ),
