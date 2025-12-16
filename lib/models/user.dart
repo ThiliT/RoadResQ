@@ -4,6 +4,7 @@ class DriverUser {
   final String vehicleType;
   final String email;
   final String plateNumber;
+  final String photoPath;
 
   const DriverUser({
     required this.name,
@@ -11,6 +12,7 @@ class DriverUser {
     required this.vehicleType,
     this.email = '',
     this.plateNumber = '',
+    this.photoPath = '',
   });
 
   DriverUser copyWith({
@@ -19,6 +21,7 @@ class DriverUser {
     String? vehicleType,
     String? email,
     String? plateNumber,
+    String? photoPath,
   }) {
     return DriverUser(
       name: name ?? this.name,
@@ -26,6 +29,7 @@ class DriverUser {
       vehicleType: vehicleType ?? this.vehicleType,
       email: email ?? this.email,
       plateNumber: plateNumber ?? this.plateNumber,
+      photoPath: photoPath ?? this.photoPath,
     );
   }
 
@@ -35,6 +39,7 @@ class DriverUser {
         'vehicleType': vehicleType,
         'email': email,
         'plateNumber': plateNumber,
+        'photoPath': photoPath,
       };
 
   factory DriverUser.fromJson(Map<String, dynamic> json) => DriverUser(
@@ -43,6 +48,7 @@ class DriverUser {
         vehicleType: json['vehicleType'] as String? ?? '',
         email: json['email'] as String? ?? '',
         plateNumber: json['plateNumber'] as String? ?? '',
+        photoPath: json['photoPath'] as String? ?? '',
       );
 }
 

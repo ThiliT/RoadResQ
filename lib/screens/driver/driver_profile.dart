@@ -3,6 +3,7 @@ import '../../models/user.dart';
 import '../../services/storage_service.dart';
 import '../../utils/constants.dart';
 import '../welcome_screen.dart';
+import 'recent_activities_screen.dart';
 
 class DriverProfileScreen extends StatefulWidget {
   final VoidCallback onRequestHelp;
@@ -139,6 +140,29 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
     );
   }
 
+  void _navigateToRecentActivities(BuildContext context) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const RecentActivitiesScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(0.0, 1.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+
+          var tween = Tween(begin: begin, end: end).chain(
+            CurveTween(curve: curve),
+          );
+
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 300),
+      ),
+    );
+  }
+
   Future<void> _logout(BuildContext context) async {
     await _storageService.clear();
     if (!mounted) return;
@@ -247,6 +271,12 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                           label: 'Edit profile',
                           onPressed: () => _showEditProfile(context, driver),
                         ),
+                        const SizedBox(height: 10),
+                        _ActionButton(
+                          icon: Icons.history_rounded,
+                          label: 'View Recent Activities',
+                          onPressed: () => _navigateToRecentActivities(context),
+                        ),
                         // const SizedBox(height: 10),
                         // _ActionButton(
                         //   icon: Icons.lock_reset_rounded,
@@ -306,32 +336,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                   //     ],
                   //   ),
                   // ),
-                  const SizedBox(height: 16),
-                  _SectionCard(
-                    title: 'Recent activity',
-                    icon: Icons.history_rounded,
-                    child: Column(
-                      children: const [
-                        _ActivityTile(
-                          title: 'Fuel delivery',
-                          subtitle: 'Completed • 2 hours ago',
-                          statusColor: AppColors.success,
-                        ),
-                        Divider(height: 18),
-                        _ActivityTile(
-                          title: 'Towing request',
-                          subtitle: 'Cancelled • Yesterday',
-                          statusColor: Colors.orangeAccent,
-                        ),
-                        Divider(height: 18),
-                        _ActivityTile(
-                          title: 'Battery jump',
-                          subtitle: 'Completed • 3 days ago',
-                          statusColor: AppColors.success,
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -550,41 +554,4 @@ class _ActionButton extends StatelessWidget {
     );
   }
 }
-
-class _ActivityTile extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final Color statusColor;
-
-  const _ActivityTile({required this.title, required this.subtitle, required this.statusColor});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: statusColor.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(Icons.local_activity_rounded, color: statusColor),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 4),
-              Text(subtitle, style: const TextStyle(color: Colors.black54)),
-            ],
-          ),
-        ),
-        const Icon(Icons.chevron_right_rounded, color: Colors.black26),
-      ],
-    );
-  }
-}
-
 
