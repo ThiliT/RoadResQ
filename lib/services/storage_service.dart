@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../models/payment_method.dart';
+import '../models/mechanic.dart';
 
 class StorageKeys {
   static const String driver = 'driver_user';
+  static const String mechanic = 'mechanic_user';
   static const String role = 'user_role';
   static const String paymentMethods = 'payment_methods';
   static const String password = 'user_password';
@@ -29,9 +31,23 @@ class StorageService {
     return prefs.getString(StorageKeys.role);
   }
 
+  Future<void> saveMechanic(Mechanic mechanic) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(StorageKeys.mechanic, jsonEncode(mechanic.toJson()));
+    await prefs.setString(StorageKeys.role, UserRole.mechanic.name);
+  }
+
+  Future<Mechanic?> getMechanic() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonStr = prefs.getString(StorageKeys.mechanic);
+    if (jsonStr == null) return null;
+    return Mechanic.fromJson(jsonDecode(jsonStr) as Map<String, dynamic>);
+  }
+
   Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(StorageKeys.driver);
+    await prefs.remove(StorageKeys.mechanic);
     await prefs.remove(StorageKeys.role);
     await prefs.remove(StorageKeys.paymentMethods);
     await prefs.remove(StorageKeys.password);
