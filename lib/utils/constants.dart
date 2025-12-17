@@ -133,7 +133,7 @@ class AppShadows {
 class AppStrings {
   static const String appName = 'RoadResQ';
   static const String backendSmsNumber = '0715562360';
-  static const String backendUrl = 'http://192.168.151.244:3000';
+  static const String backendUrl = 'http://localhost:3000';
 }
 
 class AppGradients {
