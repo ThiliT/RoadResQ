@@ -8,6 +8,7 @@ import '../../utils/constants.dart';
 import '../../widgets/status_card.dart';
 import 'map_view.dart';
 import 'mechanic_list.dart';
+import 'driver_profile.dart';
 
 class DriverDashboardScreen extends StatefulWidget {
   const DriverDashboardScreen({super.key});
@@ -254,43 +255,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> with Sing
   }
 
   Widget _buildProfile() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.person_outline_rounded,
-              size: 64,
-              color: AppColors.primary,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            'Profile',
-            style: TextStyle(
-              fontSize: AppText.h3,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'Coming soon',
-            style: TextStyle(
-              fontSize: AppText.body,
-              color: AppColors.textTertiary,
-            ),
-          ),
-        ],
-      ),
-    );
+    return DriverProfileScreen(onRequestHelp: _emergency);
   }
+
 
   @override
   Widget build(BuildContext context) {
