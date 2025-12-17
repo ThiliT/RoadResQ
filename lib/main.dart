@@ -13,12 +13,17 @@ class RoadResQApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = buildTheme();
+    final lightTheme = buildTheme();
+    final darkTheme = buildTheme(brightness: Brightness.dark);
+    
     return MaterialApp(
       title: AppStrings.appName,
-      theme: theme.copyWith(textTheme: GoogleFonts.poppinsTextTheme(theme.textTheme)),
-      darkTheme:
-          buildTheme(brightness: Brightness.dark).copyWith(textTheme: GoogleFonts.poppinsTextTheme()),
+      theme: lightTheme.copyWith(
+        textTheme: GoogleFonts.poppinsTextTheme(lightTheme.textTheme),
+      ),
+      darkTheme: darkTheme.copyWith(
+        textTheme: GoogleFonts.poppinsTextTheme(darkTheme.textTheme),
+      ),
       themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: false,
       home: const SplashScreen(),
