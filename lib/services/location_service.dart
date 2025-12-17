@@ -34,7 +34,6 @@ class LocationService {
   }
 
   String calculateETA(double distanceKm) {
-    // Assume average speed 10km/h in city traffic for demo
     final minutes = (distanceKm / 10 * 60).clamp(5, 60).round();
     return '~$minutes mins';
   }
