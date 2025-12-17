@@ -180,7 +180,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> with Sing
                 child: Text(
                   'Offline Mode: Request sent to backend. You will receive SMS with nearby mechanics list.',
                   style: TextStyle(
-                    color: AppColors.textPrimary,
+                          color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : AppColors.textPrimary,
                     fontSize: AppText.body,
                     fontWeight: FontWeight.w500,
                   ),
@@ -204,19 +206,22 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> with Sing
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
               ),
             ),
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
+        // const SizedBox(height: AppSpacing.md),
+        // ... (inside _buildOfflineSms)
+
+        // The final section
         Expanded(
           child: Center(
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.xl),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const Spacer(), 
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.xl),
                     decoration: BoxDecoration(
@@ -229,15 +234,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> with Sing
                       color: AppColors.warning,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  const Text(
-                    'Waiting for backend response...',
-                    style: TextStyle(
-                      fontSize: AppText.h5,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
                     'Backend will send SMS to your registered phone number with the list of nearby mechanics.',
@@ -247,6 +243,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> with Sing
                     ),
                     textAlign: TextAlign.center,
                   ),
+                  const Spacer(), 
                 ],
               ),
             ),
