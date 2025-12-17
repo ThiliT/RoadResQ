@@ -54,7 +54,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> with Sing
     try {
       final pos = await _locationService.getCurrentLocation();
       if (!mounted) return;
-      setState(() => _locationText = 'Lat ${pos.latitude.toStringAsFixed(4)}, Lng ${pos.longitude.toStringAsFixed(4)}');
+      final friendlyDescription =
+          _locationService.describeLocation(pos.latitude, pos.longitude);
+      setState(() => _locationText = friendlyDescription);
     } catch (_) {
       if (mounted) setState(() => _locationText = 'Location unavailable');
     }
@@ -329,41 +331,43 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> with Sing
           ),
         ],
       ),
-      floatingActionButton: AnimatedBuilder(
-        animation: _fabController,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: 1.0 + (_fabController.value * 0.05),
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: AppGradients.emergency,
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-                boxShadow: [
-                  ...AppShadows.xl,
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.5),
-                    blurRadius: 20,
-                    spreadRadius: 2,
+      floatingActionButton: !(_online)
+          ? AnimatedBuilder(
+              animation: _fabController,
+              builder: (context, child) {
+                return Transform.scale(
+                  scale: 1.0 + (_fabController.value * 0.05),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: AppGradients.emergency,
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                      boxShadow: [
+                        ...AppShadows.xl,
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.5),
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: FloatingActionButton.extended(
+                      onPressed: _emergency,
+                      icon: const Icon(Icons.emergency_rounded),
+                      label: const Text(
+                        'Help',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                    ),
                   ),
-                ],
-              ),
-              child: FloatingActionButton.extended(
-                onPressed: _emergency,
-                icon: const Icon(Icons.emergency_rounded),
-                label: const Text(
-                  'Help',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-              ),
-            ),
-          );
-        },
-      ),
+                );
+              },
+            )
+          : null, // Hidden when online
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }

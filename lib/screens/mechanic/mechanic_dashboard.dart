@@ -98,10 +98,30 @@ class _MechanicDashboardScreenState extends State<MechanicDashboardScreen> {
                       decoration: const InputDecoration(labelText: 'Service Area'),
                       items: const [
                         DropdownMenuItem(value: 'Colombo', child: Text('Colombo')),
-                        DropdownMenuItem(value: 'Galle', child: Text('Galle')),
+                        DropdownMenuItem(value: 'Gampaha', child: Text('Gampaha')),
+                        DropdownMenuItem(value: 'Kalutara', child: Text('Kalutara')),
                         DropdownMenuItem(value: 'Kandy', child: Text('Kandy')),
+                        DropdownMenuItem(value: 'Matale', child: Text('Matale')),
+                        DropdownMenuItem(value: 'Nuwara Eliya', child: Text('Nuwara Eliya')),
+                        DropdownMenuItem(value: 'Galle', child: Text('Galle')),
                         DropdownMenuItem(value: 'Matara', child: Text('Matara')),
+                        DropdownMenuItem(value: 'Hambantota', child: Text('Hambantota')),
                         DropdownMenuItem(value: 'Jaffna', child: Text('Jaffna')),
+                        DropdownMenuItem(value: 'Kilinochchi', child: Text('Kilinochchi')),
+                        DropdownMenuItem(value: 'Mannar', child: Text('Mannar')),
+                        DropdownMenuItem(value: 'Vavuniya', child: Text('Vavuniya')),
+                        DropdownMenuItem(value: 'Mullaitivu', child: Text('Mullaitivu')),
+                        DropdownMenuItem(value: 'Batticaloa', child: Text('Batticaloa')),
+                        DropdownMenuItem(value: 'Ampara', child: Text('Ampara')),
+                        DropdownMenuItem(value: 'Trincomalee', child: Text('Trincomalee')),
+                        DropdownMenuItem(value: 'Kurunegala', child: Text('Kurunegala')),
+                        DropdownMenuItem(value: 'Puttalam', child: Text('Puttalam')),
+                        DropdownMenuItem(value: 'Anuradhapura', child: Text('Anuradhapura')),
+                        DropdownMenuItem(value: 'Polonnaruwa', child: Text('Polonnaruwa')),
+                        DropdownMenuItem(value: 'Badulla', child: Text('Badulla')),
+                        DropdownMenuItem(value: 'Monaragala', child: Text('Monaragala')),
+                        DropdownMenuItem(value: 'Ratnapura', child: Text('Ratnapura')),
+                        DropdownMenuItem(value: 'Kegalle', child: Text('Kegalle')),
                       ],
                       onChanged: (value) {
                         if (value != null) {
@@ -250,9 +270,9 @@ class _MechanicDashboardScreenState extends State<MechanicDashboardScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to log out. Please try again.'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Failed to log out. Please try again.'),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -264,13 +284,20 @@ class _MechanicDashboardScreenState extends State<MechanicDashboardScreen> {
       appBar: AppBar(
         title: const Text('Mechanic Dashboard'),
         actions: [
-          TextButton.icon(
-            onPressed: _confirmAndLogout,
-            icon: const Icon(Icons.logout, color: Colors.white),
-            label: const Text(
-              'Logout',
-              style: TextStyle(color: Colors.white),
-            ),
+          Builder(
+            builder: (context) {
+              final appBarColor =
+                  Theme.of(context).appBarTheme.foregroundColor ??
+                      Theme.of(context).colorScheme.onSurface;
+              return TextButton.icon(
+                onPressed: _confirmAndLogout,
+                icon: Icon(Icons.logout, color: appBarColor),
+                label: Text(
+                  'Logout',
+                  style: TextStyle(color: appBarColor),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -367,11 +394,23 @@ class _StatTile extends StatelessWidget {
   const _StatTile({required this.label, required this.value});
   @override
   Widget build(BuildContext context) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(label, style: const TextStyle(color: Colors.black54)),
-      const SizedBox(height: 6),
-      Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
-    ]);
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: colorScheme.onSurface.withOpacity(0.7),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ],
+    );
   }
 }
 

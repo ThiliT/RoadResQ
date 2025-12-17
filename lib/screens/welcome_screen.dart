@@ -74,10 +74,22 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+
+    // Background gradient for light/dark theme
+    final backgroundGradient = isDark
+        ? AppGradients.deepOcean
+        : const LinearGradient(colors: [Colors.white, Colors.white]);
+
+    // Text colors based on theme
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final textSecondaryColor = isDark ? Colors.white.withOpacity(0.85) : Colors.black54;
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          gradient: AppGradients.deepOcean,
+          gradient: backgroundGradient,
         ),
         child: SafeArea(
           child: AnimatedBuilder(
@@ -97,7 +109,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                         Text(
                           'Welcome to',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
+                            color: textSecondaryColor,
                             fontSize: AppText.h5,
                             fontWeight: FontWeight.w500,
                             letterSpacing: 0.5,
@@ -106,8 +118,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                         const SizedBox(height: AppSpacing.xs),
                         Text(
                           AppStrings.appName,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: textColor,
                             fontSize: AppText.displayMedium,
                             fontWeight: FontWeight.w800,
                             letterSpacing: -1.5,
@@ -118,7 +130,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                         Text(
                           'On-demand roadside assistance.\nFast. Reliable. Nearby.',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.85),
+                            color: textSecondaryColor,
                             fontSize: AppText.bodyLarge,
                             fontWeight: FontWeight.w400,
                             height: 1.5,
@@ -143,7 +155,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                           subtitle: 'Connect with drivers in need',
                           icon: Icons.handyman_rounded,
                           gradient: const LinearGradient(
-                            colors: [AppColors.accentOrange, AppColors.warning],
+                            colors: [AppColors.primary, AppColors.primaryDark],
                           ),
                           onTap: () {
                             Navigator.of(context).push(_fade(const MechanicRegistrationScreen()));
@@ -283,8 +295,8 @@ class _RoleCardState extends State<_RoleCard> with SingleTickerProviderStateMixi
                               const SizedBox(height: AppSpacing.xs),
                               Text(
                                 widget.subtitle,
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
+                                style: const TextStyle(
+                                  color: Colors.white70,
                                   fontSize: AppText.body,
                                   fontWeight: FontWeight.w400,
                                 ),
@@ -316,5 +328,3 @@ class _RoleCardState extends State<_RoleCard> with SingleTickerProviderStateMixi
     );
   }
 }
-
-

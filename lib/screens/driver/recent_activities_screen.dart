@@ -70,10 +70,16 @@ class _RecentActivitiesScreenState extends State<RecentActivitiesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Recent Activities', style: TextStyle(fontWeight: FontWeight.w700)),
+        title: const Text(
+          'Recent Activities',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
         elevation: 0,
       ),
       body: FutureBuilder<List<Activity>>(
@@ -90,11 +96,18 @@ class _RecentActivitiesScreenState extends State<RecentActivitiesScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline_rounded, size: 64, color: Colors.redAccent),
+                  Icon(
+                    Icons.error_outline_rounded,
+                    size: 64,
+                    color: colorScheme.error,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'Failed to load activities',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   ElevatedButton(
@@ -133,6 +146,9 @@ class _RecentActivitiesScreenState extends State<RecentActivitiesScreen> {
   }
 
   Widget _buildEmptyState() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -142,7 +158,7 @@ class _RecentActivitiesScreenState extends State<RecentActivitiesScreen> {
             Icon(
               Icons.history_rounded,
               size: 80,
-              color: Colors.grey[300],
+              color: colorScheme.onSurface.withOpacity(0.15),
             ),
             const SizedBox(height: 24),
             Text(
@@ -150,7 +166,7 @@ class _RecentActivitiesScreenState extends State<RecentActivitiesScreen> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: Colors.grey[700],
+                color: colorScheme.onSurface.withOpacity(0.85),
               ),
             ),
             const SizedBox(height: 8),
@@ -159,7 +175,7 @@ class _RecentActivitiesScreenState extends State<RecentActivitiesScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[600],
+                color: colorScheme.onSurface.withOpacity(0.7),
               ),
             ),
           ],
@@ -372,6 +388,9 @@ class _ActivityCardState extends State<_ActivityCard> {
   @override
   Widget build(BuildContext context) {
     final activity = widget.activity;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Card(
       child: InkWell(
         onTap: () {
@@ -383,6 +402,7 @@ class _ActivityCardState extends State<_ActivityCard> {
               SnackBar(
                 content: Text('${activity.typeLabel} - ${activity.statusLabel}'),
                 duration: const Duration(seconds: 2),
+                backgroundColor: colorScheme.surface,
               ),
             );
           }
@@ -431,7 +451,7 @@ class _ActivityCardState extends State<_ActivityCard> {
                         Text(
                           '•',
                           style: TextStyle(
-                            color: Colors.grey[400],
+                            color: colorScheme.onSurface.withOpacity(0.4),
                             fontSize: 13,
                           ),
                         ),
@@ -439,7 +459,7 @@ class _ActivityCardState extends State<_ActivityCard> {
                         Text(
                           activity.timeAgo,
                           style: TextStyle(
-                            color: Colors.grey[600],
+                            color: colorScheme.onSurface.withOpacity(0.7),
                             fontSize: 13,
                           ),
                         ),
@@ -449,7 +469,7 @@ class _ActivityCardState extends State<_ActivityCard> {
                     Text(
                       _formatTimestamp(activity.timestamp),
                       style: TextStyle(
-                        color: Colors.grey[500],
+                        color: colorScheme.onSurface.withOpacity(0.6),
                         fontSize: 12,
                       ),
                     ),

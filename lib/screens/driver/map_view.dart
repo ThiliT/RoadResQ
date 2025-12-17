@@ -214,27 +214,42 @@ class _DriverMapViewState extends State<DriverMapView> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: AppSpacing.lg),
-                _InfoRow(
-                  icon: Icons.phone_outlined,
-                  label: 'Phone',
-                  value: m.phone,
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          final Uri callUri = Uri(scheme: 'tel', path: m.phone);
+                          launchUrl(callUri); // requires url_launcher
+                        },
+                        icon: const Icon(Icons.call_rounded, size: 18),
+                        label: const Text('Call'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          final Uri smsUri = Uri(
+                            scheme: 'sms',
+                            path: m.phone,
+                            queryParameters: {'body': 'Hello, I need roadside assistance.'},
+                          );
+                          launchUrl(smsUri); // requires url_launcher
+                        },
+                        icon: const Icon(Icons.sms_rounded, size: 18),
+                        label: const Text('Message'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                _InfoRow(
-                  icon: Icons.place_outlined,
-                  label: 'Area',
-                  value: '${m.area}, ${m.district}',
-                ),
-                if (m.address.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.sm),
-                  _InfoRow(
-                    icon: Icons.location_on_outlined,
-                    label: 'Address',
-                    value: m.address,
-                  ),
-                ],
                 const SizedBox(height: AppSpacing.lg),
 
                 ElevatedButton.icon(

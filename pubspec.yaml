@@ -40,6 +40,7 @@ dependencies:
   latlong2: ^0.9.1
   geolocator: ^14.0.2
   permission_handler: ^12.0.1
+  geocoding: ^2.0.5
 
   # Storage & State
   shared_preferences: ^2.2.2
@@ -50,6 +51,7 @@ dependencies:
   url_launcher: ^6.2.1
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.11.0
   flutter_test:
     sdk: flutter
 
@@ -104,3 +106,8 @@ flutter:
 
 dependency_overrides:
   geolocator_android: ^5.0.2
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/app_icon.jpeg"

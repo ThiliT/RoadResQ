@@ -250,11 +250,19 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                           ],
                         ),
                         const SizedBox(height: 4),
-                        const Padding(
-                          padding: EdgeInsets.only(left: 32),
-                          child: Text(
-                            'Update from the map tab for better accuracy.',
-                            style: TextStyle(color: Colors.black54),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 32),
+                          child: Builder(
+                            builder: (context) {
+                              final colorScheme = Theme.of(context).colorScheme;
+                              return Text(
+                                'Update from the map tab for better accuracy.',
+                                style: TextStyle(
+                                  color:
+                                      colorScheme.onSurface.withOpacity(0.7),
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ],
@@ -471,23 +479,51 @@ class _InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: Colors.blueGrey, size: 22),
+        Builder(
+          builder: (context) {
+            final colorScheme = Theme.of(context).colorScheme;
+            return Icon(
+              icon,
+              color: colorScheme.primary,
+              size: 22,
+            );
+          },
+        ),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: const TextStyle(fontSize: 13, color: Colors.black54)),
+              Builder(
+                builder: (context) {
+                  final colorScheme = Theme.of(context).colorScheme;
+                  return Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  );
+                },
+              ),
               const SizedBox(height: 2),
               Text(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
             ],
           ),
         ),
-        IconButton(
-          icon: const Icon(Icons.chevron_right_rounded, color: Colors.black38),
-          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Update $label coming soon')),
-          ),
+        Builder(
+          builder: (context) {
+            final colorScheme = Theme.of(context).colorScheme;
+            return IconButton(
+              icon: Icon(
+                Icons.chevron_right_rounded,
+                color: colorScheme.onSurface.withOpacity(0.4),
+              ),
+              onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Update $label coming soon')),
+              ),
+            );
+          },
         ),
       ],
     );

@@ -135,11 +135,21 @@ class _MechanicRegistrationScreenState extends State<MechanicRegistrationScreen>
                       child: OutlinedButton.icon(
                         onPressed: _loadingLocation ? null : _detectLocation,
                         icon: _loadingLocation
-                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
                             : const Icon(Icons.my_location),
-                        label: Text(_position == null
-                            ? 'Detect Current Location'
-                            : 'Lat: ${_position!.latitude.toStringAsFixed(4)}, Lng: ${_position!.longitude.toStringAsFixed(4)}'),
+                        label: Text(
+                          _position == null
+                              ? 'Detect Current Location'
+                              : LocationService()
+                                  .describeLocation(_position!.latitude, _position!.longitude)
+                                  .split('•')
+                                  .first
+                                  .trim(),
+                        ),
                       ),
                     ),
                   ],
@@ -167,5 +177,3 @@ class _MechanicRegistrationScreenState extends State<MechanicRegistrationScreen>
     );
   }
 }
-
-

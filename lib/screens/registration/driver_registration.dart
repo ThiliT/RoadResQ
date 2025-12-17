@@ -208,7 +208,7 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> wit
                     // Submit button
                     Container(
                       decoration: BoxDecoration(
-                        gradient: AppGradients.warmSunset,
+                        gradient: LinearGradient(colors: [AppColors.primary, AppColors.primaryDark]),
                         borderRadius: BorderRadius.circular(AppRadius.md),
                         boxShadow: AppShadows.lg,
                       ),
